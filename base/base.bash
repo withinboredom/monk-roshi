@@ -1,7 +1,14 @@
 #!/bin/bash
 
 #set working directory
-cd /vagrant
+
+if [ -d /vagrant ]; then
+    BASE="/vagrant"
+else
+    BASE="/ops"
+fi
+
+cd $BASE
 
 echo "Installing latest docker"
 curl -sSL https://get.docker.com/ubuntu/ | sudo sh
@@ -25,23 +32,24 @@ curl https://raw.githubusercontent.com/practicalmeteor/meteor-mcli/master/bin/in
 sudo apt-get upgrade -y
 
 echo "Configuring cli tools"
-mkdir -p /vagrant/monk/.meteor/local
+mkdir -p $BASE/monk/.meteor/local
 mkdir -p ~/monk/.meteor/local
-sudo mount --bind /home/vagrant/monk/.meteor/local/ /vagrant/monk/.meteor/local/
+sudo mount --bind /home/vagrant/monk/.meteor/local/ $BASE/monk/.meteor/local/
 
-echo "Starting web interface"
-mkdir -p /vagrant/monk-opsweb/.meteor/local
-mkdir -p ~/ops/.meteor/local
-sudo mount --bind /home/vagrant/ops/.meteor/local/ /vagrant/monk-opsweb/.meteor/local/
-cd /vagrant/monk-opsweb
-meteor &
-cd /vagrant
+if [ -d /vagrant ]; then
 
-#todo: Set mongo host correctly
-echo "Linking serf to web interface"
+    echo "Starting web interface"
+    mkdir -p /vagrant/monk-opsweb/.meteor/local
+    mkdir -p ~/ops/.meteor/local
+    sudo mount --bind /home/vagrant/ops/.meteor/local/ /vagrant/monk-opsweb/.meteor/local/
+    cd /vagrant/monk-opsweb
+    nohup meteor 0<&- &>/dev/null &
+    cd $BASE
 
-./serf agent -node listener -event-handler /vagrant/serf-handler.sh &
+    export MONGO_URL=127.0.0.1:3001/meteor
+    echo "Linking serf to web interface"
+else
+    echo "Starting event handlers"
+fi
 
-echo
-echo
-echo "Visit site at http://localhost:3000"
+nohup $BASE/serf agent -node listener -event-handler $BASE/serf-handler.sh 0<&- &>/dev/null &
