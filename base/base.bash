@@ -33,20 +33,20 @@ sudo apt-get upgrade -y
 
 echo "Configuring cli tools"
 mkdir -p $BASE/monk/.meteor/local
-mkdir -p ~/monk/.meteor/local
-sudo mount --bind /home/vagrant/monk/.meteor/local/ $BASE/monk/.meteor/local/
+mkdir -p /tmp/monk/.meteor/local
+sudo mount --bind /tmp/monk/.meteor/local/ $BASE/monk/.meteor/local/
 
 if [ -d /vagrant ]; then
 
     echo "Starting web interface"
     mkdir -p /vagrant/monk-opsweb/.meteor/local
-    mkdir -p ~/ops/.meteor/local
-    sudo mount --bind /home/vagrant/ops/.meteor/local/ /vagrant/monk-opsweb/.meteor/local/
+    mkdir -p /tmp/ops/.meteor/local
+    sudo mount --bind /tmp/ops/.meteor/local/ /vagrant/monk-opsweb/.meteor/local/
     cd /vagrant/monk-opsweb
     nohup meteor 0<&- &>/dev/null &
     cd $BASE
 
-    export MONGO_URL=127.0.0.1:3001/meteor
+    export MONGO_URL=mongodb://127.0.0.1:3001/meteor
     echo "Linking serf to web interface"
 else
     echo "Starting event handlers"
