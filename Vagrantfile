@@ -67,4 +67,23 @@ Vagrant.configure(2) do |config|
   config.vm.provision "shell", inline: <<-SHELL
     /vagrant/base/base.bash
   SHELL
+
+  config.vm.boot_timeout = 300
+
+  config.vm.define "console" do |console|
+    console.vm.box = "ericmann/trusty64"
+    console.vm.hostname = "console"
+  end
+
+  cluster=2
+
+  cluster.times do |i|
+    node_id = "node-#{i}"
+    ip = 4 + i
+    config.vm.define node_id do |node|
+        node.vm.box = "ericmann/trusty64"
+        node.vm.hostname = node_id
+        node.vm.network :private_network, ip: "10.0.0.#{ip}"
+    end
+  end
 end
